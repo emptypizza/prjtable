@@ -31,9 +31,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // 게임 시작 시 언어 선택 팝업을 띄우거나 초기화
-        GS = GameState.Ready;
-        uiManager.ShowLanguageSelect(); 
+        // [테스트용] 바로 게임 시작
+        StartGame();
     }
 
     public void StartGame()
