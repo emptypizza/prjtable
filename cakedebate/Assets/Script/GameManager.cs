@@ -1,164 +1,214 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public enum GameState
 {
     Ready,
-    Play,
-    Pause,
-    Clear,
-    Gameover,
-    FinalResult,
-    AskEnd,
-    DieDeley
+    PlayerTurn,
+    AITurn,
+    Gameover
 }
 
 public class GameManager : MonoBehaviour
 {
-    [Header("Grid System")]
-    [SerializeField] private GameObject gridCellPrefab; // 그리드 셀의 프리팹
-    private GameObject[,] gridObjects; // 6x8 그리드 객체 배열
-    public int gridWidth = 9;
-    public int gridHeight = 9;
-
-    // Singleton implementation
     public static GameManager Instance;
 
-    // UI Manager
-    public UIcode UIManager;
-
-    // Gameplay variables
+    [Header("Game Settings")]
     public GameState GS;
-    public int nGameScore_current;
-    public int nGameScore_Best;
-    public float fGametime;
-    public static int nLevel;
-    public float LeftLimit = -8.9f;
-    public float RightLimit = 9;
-    public float TopLimit = 30f;
-    public float BottomLimit = -9f;
+    public int p1Hp = 100;
+    public int p2Hp = 100;
+    public float cakePos = 50f; // 0(Player) ~ 100(AI)
+
+    [Header("References")]
+    public UIManager uiManager;
+    public PC2AI aiOpponent;
+    
+    // 크리티컬 확률 (0.8 ~ 1.4배 변동)
+    private float minVar = 0.8f;
+    private float maxVar = 1.4f;
 
     private void Awake()
     {
-        // Singleton Pattern
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
-    }
-
-    private void InitializeGame()
-    {
-        Debug.LogFormat("Loading a new level {0}...", nLevel);
-        GS = GameState.Ready;
-        nGameScore_current = 0;
-        nGameScore_Best = 0;
-        fGametime = 0f;
-        Time.timeScale = 1f;
-
-        LeftLimit = -8.9f;
-        RightLimit = 9;
-        TopLimit = 30f;
-        BottomLimit = -9f;
-        if (GameManager.nLevel >= 1)
-            SoundManager.Instance.PlayBackgroundMusic(nLevel);
+        // 싱글톤 패턴
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     private void Start()
     {
-        UIManager = FindObjectOfType<UIcode>();
-        if (UIManager == null)
-            Debug.LogError("UIManager not found.");
-
         InitializeGame();
-        GenerateGrid();
     }
 
-    private void GenerateGrid()
+    private void InitializeGame()
     {
-        gridObjects = new GameObject[gridWidth, gridHeight];
-
-        float startingX = (-gridWidth / 2.0f) + 0.5f;
-        float startingY = (-gridHeight / 2.0f) + 0.5f;
-        float borderThickness = 0.05f; // 테두리 두께 설정
-
-        for (int x = 0; x < gridWidth; x++)
+        GS = GameState.PlayerTurn;
+        p1Hp = 100;
+        p2Hp = 100;
+        cakePos = 50f;
+        
+        // UI 초기화
+        if (uiManager != null)
         {
-            for (int y = 0; y < gridHeight; y++)
-            {
-                GameObject cell = Instantiate(gridCellPrefab, new Vector3(startingX + x, startingY + y, 0), Quaternion.identity, transform);
-                gridObjects[x, y] = cell;
-
-                // 테두리 생성
-                CreateBorder(cell.transform, borderThickness);
-            }
+            uiManager.UpdateUI(p1Hp, p2Hp, cakePos);
+            uiManager.ShowTurnIndicator("당신의 턴!");
         }
     }
 
-    private void CreateBorder(Transform parent, float thickness)
+    // 플레이어가 버튼을 눌렀을 때 호출 (UIManager에서 연결)
+    public void OnPlayerAction(string actionType)
     {
-        GameObject top = new GameObject("Top Border");
-        GameObject bottom = new GameObject("Bottom Border");
-        GameObject left = new GameObject("Left Border");
-        GameObject right = new GameObject("Right Border");
+        if (GS != GameState.PlayerTurn) return;
 
-        GameObject[] borders = { top, bottom, left, right };
-
-        foreach (GameObject border in borders)
+        // 코스트 체크
+        int cost = 0;
+        if (actionType == "chat") cost = 2;
+        else if (actionType == "attack") cost = 12;
+        
+        if (p1Hp < cost)
         {
-            border.transform.SetParent(parent);
-            border.AddComponent<SpriteRenderer>().color = Color.blue;
+            Debug.Log("멘탈 부족!"); // 추후 UI 알림으로 변경 가능
+            return;
         }
 
-        top.transform.localScale = new Vector3(1, thickness, 1);
-        bottom.transform.localScale = new Vector3(1, thickness, 1);
-        left.transform.localScale = new Vector3(thickness, 1, 1);
-        right.transform.localScale = new Vector3(thickness, 1, 1);
-
-        top.transform.localPosition = new Vector3(0, 0.5f - thickness / 2, 0);
-        bottom.transform.localPosition = new Vector3(0, -0.5f + thickness / 2, 0);
-        left.transform.localPosition = new Vector3(-0.5f + thickness / 2, 0, 0);
-        right.transform.localPosition = new Vector3(0.5f - thickness / 2, 0, 0);
+        StartCoroutine(ExecuteTurn(true, actionType));
     }
 
-    public Vector2 GetGridBoundary()
+    // 턴 실행 로직 (플레이어/AI 공용)
+    public IEnumerator ExecuteTurn(bool isPlayer, string actionType)
     {
-        float halfWidth = gridWidth / 2.0f;
-        float halfHeight = gridHeight / 2.0f;
+        // 1. 행동 처리 (계산 및 적용)
+        ProcessAction(isPlayer, actionType);
+        
+        // 2. 승패 체크
+        if (CheckWinCondition()) yield break;
 
-        return new Vector2(halfWidth, halfHeight);
-    }
-
-    public void ClearGame()
-    {
-        nLevel += 1;
-
-        if (nLevel < 6)
-            SceneManager.LoadScene(nLevel);
+        // 3. 턴 넘기기
+        if (isPlayer)
+        {
+            GS = GameState.AITurn;
+            uiManager.ShowTurnIndicator("상대방의 턴...");
+            yield return new WaitForSeconds(1.5f); // 생각하는 척 딜레이
+            
+            if (aiOpponent != null)
+                aiOpponent.DecideNextMove(); // AI에게 행동 지시
+        }
         else
-            SceneManager.LoadScene(0);
+        {
+            GS = GameState.PlayerTurn;
+            uiManager.ShowTurnIndicator("당신의 턴!");
+        }
     }
 
-    public void GameOver()
+    private void ProcessAction(bool isPlayer, string actionType)
     {
-        SoundManager.Instance.GameOver();
-        SceneManager.LoadScene(0);   //GS = GameState.Gameover;
+        // 기본 수치 정의
+        float baseCakeMove = 0f;
+        int baseSelfHp = 0;
+        int baseEnemyHp = 0;
+
+        // 타입별 기본값 (밸런스 패치 적용됨)
+        switch (actionType)
+        {
+            case "chat": // 잡담
+                baseCakeMove = isPlayer ? -12 : 12;
+                baseSelfHp = -2; // 코스트 (고정)
+                break;
+            case "flatter": // 칭찬
+                baseCakeMove = isPlayer ? -28 : 28;
+                baseEnemyHp = 12; // 적 회복 (변동)
+                break;
+            case "attack": // 비난
+                baseCakeMove = isPlayer ? -5 : 5;
+                baseEnemyHp = -20; // 공격 (변동)
+                baseSelfHp = -10; // 코스트 (고정)
+                break;
+            case "cry": // 슬픔 (회복)
+                baseCakeMove = isPlayer ? 5 : -5; // 밀림 (변동)
+                baseSelfHp = 24; // 회복 (변동)
+                break;
+        }
+
+        // --- 랜덤 변동성(크리티컬) 적용 계산 ---
+        
+        // 1. 케이크 이동 (무조건 변동)
+        float cakeMove = ApplyVariance(baseCakeMove);
+        
+        // 2. 내 HP 변화 (양수=회복일 때만 변동, 음수=코스트는 고정)
+        int selfHpChange = baseSelfHp;
+        if (baseSelfHp > 0) 
+            selfHpChange = Mathf.RoundToInt(ApplyVariance(baseSelfHp));
+
+        // 3. 상대 HP 변화 (무조건 변동)
+        int enemyHpChange = baseEnemyHp;
+        if (baseEnemyHp != 0) 
+            enemyHpChange = Mathf.RoundToInt(ApplyVariance(baseEnemyHp));
+
+
+        // 실제 데이터 적용
+        if (isPlayer)
+        {
+            p1Hp += selfHpChange;
+            p2Hp += enemyHpChange;
+        }
+        else
+        {
+            p2Hp += selfHpChange;
+            p1Hp += enemyHpChange;
+        }
+
+        // HP 0~100 제한
+        p1Hp = Mathf.Clamp(p1Hp, 0, 100);
+        p2Hp = Mathf.Clamp(p2Hp, 0, 100);
+
+        // 케이크 이동 적용
+        cakePos += cakeMove;
+        cakePos = Mathf.Clamp(cakePos, 0f, 100f);
+
+        // UI 갱신
+        if (uiManager != null)
+        {
+            uiManager.UpdateUI(p1Hp, p2Hp, cakePos);
+            
+            // 플로팅 텍스트 (데미지/회복 표시)
+            if (enemyHpChange != 0) uiManager.SpawnFloatingText(false, enemyHpChange); // 상대방 머리 위
+            if (baseSelfHp > 0) uiManager.SpawnFloatingText(true, selfHpChange); // 내 머리 위 (회복일때만)
+        }
     }
 
-    public void AddScore(int scoreToAdd)
+    // 랜덤 변동값 계산 함수 (0.8 ~ 1.4배)
+    private float ApplyVariance(float baseVal)
     {
-        nGameScore_current += scoreToAdd;
+        if (baseVal == 0) return 0;
+        float factor = Random.Range(minVar, maxVar);
+        return baseVal * factor;
     }
 
-    public void AddScore()
+    private bool CheckWinCondition()
     {
-        nGameScore_current += 1;
-    }
+        bool isGameOver = false;
+        bool playerWin = false;
 
-    // ... [Other methods remain the same as your original script]
+        // 1. HP 조건 (0 이하 발생 시)
+        if (p1Hp <= 0 || p2Hp <= 0)
+        {
+            isGameOver = true;
+            // 둘 다 0이하면 더 높은 쪽 승리
+            if (p1Hp > p2Hp) playerWin = true;
+            else if (p2Hp > p1Hp) playerWin = false;
+            else playerWin = cakePos < 50; // 완전 동점시 케이크 위치로 판별
+        }
+        // 2. 케이크 위치 조건
+        else if (cakePos <= 0) { isGameOver = true; playerWin = true; }
+        else if (cakePos >= 100) { isGameOver = true; playerWin = false; }
+
+        if (isGameOver)
+        {
+            GS = GameState.Gameover;
+            if (uiManager != null)
+                uiManager.ShowResult(playerWin);
+            return true;
+        }
+        return false;
+    }
 }
-
-
-

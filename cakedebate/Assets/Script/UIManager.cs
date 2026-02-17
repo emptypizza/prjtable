@@ -1,104 +1,71 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro; // TextMeshPro 사용 권장 (없으면 Text로 변경)
 
 public class UIManager : MonoBehaviour
 {
-    public PC1 PC1;
-    public PC2AI pc2ai;
+    [Header("UI Elements")]
+    public Slider p1HpBar;
+    public Slider p2HpBar;
+    public TextMeshProUGUI p1HpText;
+    public TextMeshProUGUI p2HpText;
+    
+    public RectTransform cakeIcon; // 케이크 이미지
+    public TextMeshProUGUI turnText; // 턴 알림 텍스트
+    
+    [Header("Popups")]
+    public GameObject winPopup;
+    public GameObject losePopup;
 
-    public Text nLevel; // Modified to pcRotText
-    public Text P1HP;
-    public Text P2HP;
-    public Text fDifficulty_lv;
+    [Header("Positions")]
+    public Transform p1Pos; // 플레이어 위치 (데미지 텍스트용)
+    public Transform p2Pos; // 상대 위치
 
-    public Image plus_button;
-    public Image minus_button;
-    public Image multi_button;
-    public Image chaos_button;
-
-
-    public Image pc1win;
-    public Image pc2win;
-
-
-    public Button StartButton; // Modified to shotButton
-    public Button clearButton;
-    public Button gameoverButton;
-
-
-    public Image clearImage; // Modified to clearImage
-    public Image StartImage;
-
-
-    void Start()
+    public void UpdateUI(int p1Hp, int p2Hp, float cakePos)
     {
-        // player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+        // HP 갱신
+        p1HpBar.value = p1Hp / 100f;
+        p2HpBar.value = p2Hp / 100f;
+        p1HpText.text = p1Hp.ToString();
+        p2HpText.text = p2Hp.ToString();
 
-        if (pc1win != null)
-        {
-            pc1win.transform.position = new Vector3(999, 480);
-            pc1win.gameObject.SetActive(false);
-        }
-        if (pc2win != null)
-        {
-            pc2win.transform.position = new Vector3(1024, 500);
-            pc2win.gameObject.SetActive(false);
-        }
-        if (clearImage != null)
-        {
-            clearImage.transform.position = new Vector3(0, 0);
-            clearImage.gameObject.SetActive(false);
-        }
-
-       
-    }
-    public void GameStart()
-    {
-        Time.timeScale = 1f;
-        StartImage.gameObject.SetActive(false);
-
+        // 케이크 위치 이동 (Linear Interpolation)
+        // 케이크 트랙의 길이에 맞춰 조절 필요 (예: -300 ~ 300)
+        float xPos = Mathf.Lerp(-300f, 300f, cakePos / 100f); 
+        cakeIcon.anchoredPosition = new Vector2(xPos, cakeIcon.anchoredPosition.y);
     }
 
-
-    void Update()
+    public void ShowTurnIndicator(string msg)
     {
-
-        P1HP.text = PC1.HP.ToString();
-        P2HP.text = pc2ai.HP.ToString();
-
+        turnText.text = msg;
+        turnText.gameObject.SetActive(true);
+        // 애니메이션 효과를 넣고 싶다면 여기에 추가
+        Invoke("HideTurnIndicator", 1.0f);
     }
 
-    public void GameClear()
+    void HideTurnIndicator()
     {
-        Time.timeScale = 0f;
-        clearImage.gameObject.SetActive(true);
-
+        turnText.gameObject.SetActive(false);
     }
 
-    public void pc1winpopup(int i)
+    public void ShowResult(bool playerWin)
     {
-        if (i == 1)
-        {
-            Time.timeScale = 0f;
-            pc1win.gameObject.SetActive(true);
-        }
-  else      if (i == 2)
-        {
-            Time.timeScale = 0f;
-            pc2win.gameObject.SetActive(true);
-        }
-
+        if (playerWin) winPopup.SetActive(true);
+        else losePopup.SetActive(true);
     }
 
-    public void pc2winpopup()
+    // 데미지/회복 텍스트 띄우기 (간단 구현)
+    public void SpawnFloatingText(bool isPlayer, int value)
     {
-        Time.timeScale = 0f;
-        pc2win.gameObject.SetActive(true);
-
+        Debug.Log($"{(isPlayer ? "Player" : "Enemy")} Value Change: {value}");
+        // 여기에 Prefab 생성 로직 추가 가능
     }
 
-
+    // --- 버튼 이벤트 연결용 함수 ---
+    public void OnClickChat() => GameManager.Instance.OnPlayerAction("chat");
+    public void OnClickFlatter() => GameManager.Instance.OnPlayerAction("flatter");
+    public void OnClickAttack() => GameManager.Instance.OnPlayerAction("attack");
+    public void OnClickCry() => GameManager.Instance.OnPlayerAction("cry");
+    
+    public void OnClickRestart() => UnityEngine.SceneManagement.SceneManager.LoadScene(0);
 }
-

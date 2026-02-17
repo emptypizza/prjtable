@@ -1,104 +1,89 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
+using System.Collections;
 
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D rb;
-    private Vector2 direction;
-    public float moveDistance = 1f; // Distance Pac-Man moves per key press
-
-    Item[] items;
-
-    public Movement2D movement2D;
+    private Vector3 originalPos;
+    private RectTransform rectTransform;
 
     private void Awake()
     {
-        movement2D = GetComponent<Movement2D>();
-    }
-
-    private void Start()
-    {
-        rb = GetComponent<Rigidbody2D>();
-        direction = Vector2.right; // Initial Direction to the right.  
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag("GridCell"))
+        // UI 요소이므로 RectTransform을 가져옵니다.
+        rectTransform = GetComponent<RectTransform>();
+        if (rectTransform != null)
         {
-            Cell cellComponent = collision.gameObject.GetComponent<Cell>();
-            if (cellComponent != null)
-            {
-                cellComponent.ActivateCell();
-            }
+            originalPos = rectTransform.anchoredPosition;
+        }
+        else
+        {
+            originalPos = transform.position;
         }
     }
 
-
-    void Move()
+    // 공격받았을 때 흔들리는 효과
+    public void PlayShakeEffect()
     {
-        rb.MovePosition((Vector2)transform.position + (direction * moveDistance * Time.fixedDeltaTime));
+        StopAllCoroutines();
+        StartCoroutine(ShakeCoroutine(0.5f, 10f));
     }
 
-    private void MoveDirection(Vector2 dir)
+    // 말할 때 살짝 튀어오르는 효과
+    public void PlayPopEffect()
     {
-        Vector2 newPosition = (Vector2)this.transform.position + dir * moveDistance;
-        transform.position = newPosition;
+        StopAllCoroutines();
+        StartCoroutine(PopCoroutine(0.2f, 1.1f));
     }
 
-    private void Update()
+    // 흔들림 코루틴
+    private IEnumerator ShakeCoroutine(float duration, float magnitude)
     {
-        float x = Input.GetAxisRaw("Horizontal");
-        float y = Input.GetAxisRaw("Vertical");
-        /*      if (x != 0 || y != 0)
-      {        movement2D.MoveDirection = new Vector3(x, y, 0);}*/
+        float elapsed = 0.0f;
 
+        while (elapsed < duration)
+        {
+            float x = Random.Range(-1f, 1f) * magnitude;
+            float y = Random.Range(-1f, 1f) * magnitude;
 
-        Vector2 newPosition = transform.position;
+            if (rectTransform != null)
+                rectTransform.anchoredPosition = (Vector2)originalPos + new Vector2(x, y);
+            else
+                transform.position = originalPos + new Vector3(x, y, 0);
 
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            //newPosition += Vector2.up * moveDistance;
-            MoveUp();
-        }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            //movement2D.MoveDirection = Vector3.down;
-
-            MoveDown();
-        }
-        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            //movement2D.MoveDirection = Vector3.left;
-            MoveLeft();
-        }
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            MoveRight();
+            elapsed += Time.deltaTime;
+            yield return null;
         }
 
-
-
+        // 원위치 복귀
+        if (rectTransform != null) rectTransform.anchoredPosition = originalPos;
+        else transform.position = originalPos;
     }
-    public void MoveUp()
+
+    // 팝업 코루틴
+    private IEnumerator PopCoroutine(float duration, float scaleFactor)
     {
-        MoveDirection(Vector2.up);
-    }
+        Vector3 originalScale = transform.localScale;
+        Vector3 targetScale = originalScale * scaleFactor;
 
-    public void MoveDown()
-    {
-        MoveDirection(Vector2.down);
-    }
+        float halfDuration = duration / 2;
+        float elapsed = 0f;
 
-    public void MoveLeft()
-    {
-        MoveDirection(Vector2.left);
-    }
+        // 커지기
+        while (elapsed < halfDuration)
+        {
+            transform.localScale = Vector3.Lerp(originalScale, targetScale, elapsed / halfDuration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
 
-    public void MoveRight()
-    {
-        MoveDirection(Vector2.right);
-    }
+        elapsed = 0f;
+        // 작아지기
+        while (elapsed < halfDuration)
+        {
+            transform.localScale = Vector3.Lerp(targetScale, originalScale, elapsed / halfDuration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
 
+        transform.localScale = originalScale;
+    }
 }
