@@ -22,6 +22,11 @@ public class GameManager : MonoBehaviour
     private float minVar = 0.8f;
     private float maxVar = 1.4f;
 
+    // AI 턴 타이머 (코루틴 대신 Update로 처리)
+    private bool aiWaiting = false;
+    private float aiTimer = 0f;
+    private float aiDelay = 2f;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -40,15 +45,56 @@ public class GameManager : MonoBehaviour
     {
         GS = GameState.PlayerTurn;
         p1Hp = 100; p2Hp = 100; cakePos = 50f;
+        aiWaiting = false;
         if(uiManager) {
             uiManager.UpdateUI(p1Hp, p2Hp, cakePos);
             uiManager.ShowTurnIndicator(true);
         }
     }
 
+    // 코루틴 대신 Update로 AI 턴 타이머 처리
+    private void Update()
+    {
+
+        
+        if (aiWaiting) 
+        {
+
+     //   aiTimer -= Time.deltaTime;
+        aiTimer -= Time.unscaledDeltaTime;
+        Debug.Log($"[AI Timer] {aiTimer:F2}s remaining, GS={GS}");
+
+        if (aiTimer <= 0f)
+        {
+            aiWaiting = false;
+            aiTimer = aiDelay; // 리셋
+            DoAITurn();
+        }
+        }
+    }
+
+    private void DoAITurn()
+    {
+        if (aiOpponent != null)
+        {
+            Debug.LogWarning("AI Opponent 미연결! 랜덤 행동.");
+            string[] actions = { "chat", "flatter", "attack", "cry" };
+            ProcessAIAction(actions[Random.Range(0, actions.Length)]);
+           // aiOpponent.DecideNextMove();
+        }
+        else
+        {
+            Debug.LogWarning("AI Opponent 미연결! 랜덤 행동.");
+            string[] actions = { "chat", "flatter", "attack", "cry" };
+            ProcessAIAction(actions[Random.Range(0, actions.Length)]);
+        }
+    }
+
     // 플레이어 행동 진입점
     public void OnPlayerAction(string actionType)
     {
+        
+        
         if (GS != GameState.PlayerTurn) return;
 
         int cost = 0;
@@ -59,52 +105,29 @@ public class GameManager : MonoBehaviour
             Debug.Log("멘탈 부족!"); 
             return;
         }
-        
-        StartCoroutine(ExecuteTurn(true, actionType));
+
+        // 플레이어 행동 즉시 처리
+        ProcessAction(true, actionType);
+        if (CheckWinCondition()) return;
+
+        // AI 턴 시작 (타이머)
+        GS = GameState.AITurn;
+          aiTimer = aiDelay;
+        aiWaiting = true;
+        if(uiManager) uiManager.ShowTurnIndicator(false);
+      
     }
 
     // [중요] AI 행동 진입점 (PC2AI에서 호출)
     public void ProcessAIAction(string actionType)
     {
-        // GameManager가 코루틴을 직접 실행하여 AI 오브젝트 상태와 무관하게 동작 보장
-        StartCoroutine(ExecuteTurn(false, actionType));
-    }
+        Debug.Log($"[Turn] AI executes: {actionType}");
+        ProcessAction(false, actionType);
+        if (CheckWinCondition()) return;
 
-    // 턴 실행 로직
-    public IEnumerator ExecuteTurn(bool isPlayer, string actionType)
-    {
-        Debug.Log($"[Turn] {(isPlayer ? "Player" : "AI")} executes: {actionType}");
-        
-        ProcessAction(isPlayer, actionType);
-        
-        if (CheckWinCondition()) yield break;
-
-        if (isPlayer)
-        {
-            // 플레이어 턴 끝 -> AI 턴 준비
-            GS = GameState.AITurn;
-            if(uiManager) uiManager.ShowTurnIndicator(false);
-            
-            yield return new WaitForSeconds(1.0f); // 연출 대기
-
-            // AI에게 결정 명령
-            if (aiOpponent != null)
-            {
-                aiOpponent.DecideNextMove();
-            }
-            else
-            {
-                Debug.LogWarning("AI Opponent가 연결되지 않았습니다! 랜덤 행동을 합니다.");
-                string[] actions = { "chat", "flatter", "attack", "cry" };
-                ProcessAIAction(actions[Random.Range(0, actions.Length)]);
-            }
-        }
-        else
-        {
-            // AI 턴 끝 -> 플레이어 턴 준비
-            GS = GameState.PlayerTurn;
-            if(uiManager) uiManager.ShowTurnIndicator(true);
-        }
+        // AI 턴 끝 -> 플레이어 턴
+        GS = GameState.PlayerTurn;
+        if(uiManager) uiManager.ShowTurnIndicator(true);
     }
 
     private void ProcessAction(bool isPlayer, string actionType)

@@ -939,7 +939,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 526166055}
@@ -3446,6 +3446,17 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &2136857181 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3545952936734810916, guid: 6a8dea59fbc6145b088f52c7621fc0c6, type: 3}
+  m_PrefabInstance: {fileID: 8509470669526889816}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0167deb2343534f9fa4a3e8b48f0e841, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &362364159899578372
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3592,10 +3603,6 @@ PrefabInstance:
       propertyPath: 'm_fontSharedMaterials.Array.data[0]'
       value: 
       objectReference: {fileID: 766941625}
-    - target: {fileID: 610836909505772838, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 2687473517580327053, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
       propertyPath: m_fontMaterial
       value: 
@@ -3612,14 +3619,14 @@ PrefabInstance:
       propertyPath: 'm_fontSharedMaterials.Array.data[0]'
       value: 
       objectReference: {fileID: 76405081}
-    - target: {fileID: 3895252278362932526, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
-      propertyPath: m_FontData.m_Alignment
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 6993516539778656514, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
-      propertyPath: m_FontData.m_Alignment
-      value: 4
-      objectReference: {fileID: 0}
+    - target: {fileID: 4160089209106815315, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2136857181}
+    - target: {fileID: 4985438864091963156, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2136857181}
     - target: {fileID: 7608411766561647961, guid: 498ab4aa679554e5fa05419997c436b2, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -3913,10 +3920,6 @@ PrefabInstance:
       value: GameManager
       objectReference: {fileID: 0}
     - target: {fileID: 3545952936734810916, guid: 6a8dea59fbc6145b088f52c7621fc0c6, type: 3}
-      propertyPath: GS
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3545952936734810916, guid: 6a8dea59fbc6145b088f52c7621fc0c6, type: 3}
       propertyPath: p1Effect
       value: 
       objectReference: {fileID: 1526165929}
@@ -3991,7 +3994,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1179647151511018417, guid: f7a4613fc52204dcd82147426322fdaa, type: 3}
       propertyPath: m_TagString
-      value: Player
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 2500522032765957246, guid: f7a4613fc52204dcd82147426322fdaa, type: 3}
       propertyPath: m_SortingOrder

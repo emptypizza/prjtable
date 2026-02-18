@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0167deb2343534f9fa4a3e8b48f0e841, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GS: 1
+  GS: 0
   p1Hp: 100
   p2Hp: 100
   cakePos: 50
@@ -52,3 +52,5 @@ MonoBehaviour:
   aiOpponent: {fileID: 0}
   p1Effect: {fileID: 0}
   p2Effect: {fileID: 0}
+  aiTimer: 0
+  aiDelay: 1
