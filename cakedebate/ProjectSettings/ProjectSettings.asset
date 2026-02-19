@@ -8,12 +8,12 @@ PlayerSettings:
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
-  defaultScreenOrientation: 0
+  defaultScreenOrientation: 2
   targetDevice: 2
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: GGHF
-  productName: prjdeer0
+  productName: "\uB450\uBC14\uC774\uCAC0\uB729\uCFE0\uD0A4\uC18C\uB140"
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -143,7 +143,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.0.0
+  bundleVersion: 0.0.1
   preloadedAssets:
   - {fileID: -944628639613478452, guid: abfc50568cd094ab2a57f0b3510d3384, type: 3}
   metroInputSource: 0
@@ -372,14 +372,14 @@ PlayerSettings:
       m_Kind: 0
       m_SubKind: 
     - m_Textures:
-      - {fileID: 2800000, guid: 544cb6399b81347d79be20fb4bc08308, type: 3}
+      - {fileID: 2800000, guid: 916d881574d7f6048b97879d9fc9bbf1, type: 3}
       - {fileID: 0}
       m_Width: 432
       m_Height: 432
       m_Kind: 2
       m_SubKind: 
     - m_Textures:
-      - {fileID: 2800000, guid: a9f67a41b3a1ee24abc1186587994465, type: 3}
+      - {fileID: 2800000, guid: 4d833021a49b14d19b5a33c1b97f6048, type: 3}
       - {fileID: 0}
       m_Width: 324
       m_Height: 324

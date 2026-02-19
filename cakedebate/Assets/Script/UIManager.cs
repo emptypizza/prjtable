@@ -36,10 +36,25 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         InitializeDialogues();
+
+        // 팝업 초기 상태 설정
+    
+        langPopup.transform.position = new Vector3(1080, 540, 0);
+        winPopup.transform.position = new Vector3(1080, 540, 0);
+        losePopup.transform.position = new Vector3(1080, 540, 0);
+     
+    }
+
+    void Start()
+    {
+        if(winPopup) winPopup.SetActive(false);
+        if(losePopup) losePopup.SetActive(false);
     }
 
     void InitializeDialogues()
     {
+
+
         dialogues_ko.Add("chat", new string[] { "오늘 날씨가 참 좋지 않아?", "너 그 머리핀, 어디서 샀어?", "케이크엔 역시 아메리카노지.", "근데 너 숙제는 다 했니?" });
         dialogues_ko.Add("flatter", new string[] { "넌 웃을 때가 제일 예뻐!", "너처럼 똑똑한 애는 처음 봐.", "역시 넌 배려심이 깊구나.", "오늘 스타일 완전 아이돌 같아!" });
         dialogues_ko.Add("attack", new string[] { "너 진짜 이기적이다.", "양심이 있으면 좀 비켜줄래?", "말이 안 통하네 정말.", "너 친구 없지?" });

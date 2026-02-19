@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame()
     {
+        uiManager.langPopup.SetActive(false);
         GS = GameState.PlayerTurn;
         p1Hp = 100; p2Hp = 100; cakePos = 50f;
         aiWaiting = false;
