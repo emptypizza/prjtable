@@ -78,10 +78,7 @@ public class GameManager : MonoBehaviour
     {
         if (aiOpponent != null)
         {
-            Debug.LogWarning("AI Opponent 미연결! 랜덤 행동.");
-            string[] actions = { "chat", "flatter", "attack", "cry" };
-            ProcessAIAction(actions[Random.Range(0, actions.Length)]);
-           // aiOpponent.DecideNextMove();
+            aiOpponent.DecideNextMove();
         }
         else
         {

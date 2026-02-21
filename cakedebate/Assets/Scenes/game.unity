@@ -3712,6 +3712,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: p2Circle
       objectReference: {fileID: 0}
+    - target: {fileID: 6573045417914572253, guid: bd350e9e118984b5eb65ec62f74f1aa4, type: 3}
+      propertyPath: m_SortingLayer
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6573045417914572253, guid: bd350e9e118984b5eb65ec62f74f1aa4, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 783078561
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
